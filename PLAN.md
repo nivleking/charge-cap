@@ -239,10 +239,25 @@ Di akhir, skrip **selalu** mengembalikan `CHTE = 0` dan `CHIE = 0` (juga kalau d
 lalu menulis ringkasan jawaban untuk "Pertanyaan terbuka" di bagian 7. Fase 1 nanti memakai log yang sama
 (`/var/log/chargecap.log`) dengan format serupa, jadi hasilnya bisa dibandingkan.
 
-### Fase 1 — Daemon + CLI (±1 hari)
-- Paket Swift (`Package.swift`) dengan target `SMCKit`, `chargecapd`, `chargecap`.
-- Logika batas + histeresis + tidur/bangun + reset saat keluar.
-- Simpan setelan di `/Library/Application Support/ChargeCap/config.json`.
+### Fase 1 — Daemon + CLI — KODE SELESAI 3 Nov 2026 (19 tes lulus), belum diuji di perangkat keras
+
+Disederhanakan berkat temuan Fase 0: **firmware yang menghentikan dan melanjutkan pengisian**, jadi daemon
+**tidak memantau persen baterai**. Tugasnya hanya memastikan tiga kunci (`bfF0`, `bfD0`, `bfE0`) berisi yang
+diminta `config.json`: saat start, setelah bangun, saat sumber daya berubah, dan tiap 60 detik.
+
+- `ChargeCapCore` (murni, ada tesnya): `Config` (nonaktif secara bawaan, batas 20–100, jarak 1–15),
+  `WritePlanner` (urutan tulis; `bfD0 >= bfE0` di setiap saat), `Engine` (baca, bandingkan, tulis selisihnya,
+  verifikasi). Tes memakai SMC palsu yang meniru firmware: menolak `bfD0 < bfE0` dengan 0x89 dan mematikan
+  `bfF0`; semua perpindahan antar batas diuji dan tidak ada yang memicu penolakan.
+- `ChargeCapKit`: `SMCClient` (hanya bisa menulis tiga kunci itu, `bfF0` ∈ {0, 2}, persen 1–100),
+  `Battery`, `PowerWatcher` (bangun, ganti sumber daya), `FileLog` (`/var/log/chargecap.log`, ±1 MB).
+- `chargecapd`: daemon root. Tidak mengubah kunci saat dihentikan (SIGTERM); mematikan batas hanya lewat
+  `chargecap off`/uninstall.
+- `chargecap` (CLI): `status` (tanpa root), `sudo limit N`, `sudo off`, `sudo apply`, `logs`. `limit` dan `off`
+  langsung diterapkan, jadi bisa dicoba **tanpa memasang daemon**.
+- Mematikan batas hanya menulis `bfF0=00`; firmware mengabaikan `bfD0`/`bfE0` saat mode 00.
+- Tanpa XPC di Fase 1: CLI menulis `config.json` (root) dan menerapkannya sendiri; daemon membaca ulang
+  file itu tiap menit. XPC baru dibutuhkan kalau aplikasi menu bar (Fase 4) harus berjalan tanpa root.
 
 ### Fase 2 — Pasang & copot (±1–2 jam)
 - `install.sh`: build release, salin ke `/usr/local/libexec/chargecapd`, pasang plist, `launchctl bootstrap system ...`.
