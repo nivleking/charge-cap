@@ -239,7 +239,7 @@ Di akhir, skrip **selalu** mengembalikan `CHTE = 0` dan `CHIE = 0` (juga kalau d
 lalu menulis ringkasan jawaban untuk "Pertanyaan terbuka" di bagian 7. Fase 1 nanti memakai log yang sama
 (`/var/log/chargecap.log`) dengan format serupa, jadi hasilnya bisa dibandingkan.
 
-### Fase 1 — Daemon + CLI — KODE SELESAI 3 Nov 2026 (19 tes lulus), belum diuji di perangkat keras
+### Fase 1 — Daemon + CLI — SELESAI dan teruji di perangkat keras, 3 Nov 2026 (19 tes lulus)
 
 Disederhanakan berkat temuan Fase 0: **firmware yang menghentikan dan melanjutkan pengisian**, jadi daemon
 **tidak memantau persen baterai**. Tugasnya hanya memastikan tiga kunci (`bfF0`, `bfD0`, `bfE0`) berisi yang
@@ -256,6 +256,9 @@ diminta `config.json`: saat start, setelah bangun, saat sumber daya berubah, dan
 - `chargecap` (CLI): `status` (tanpa root), `sudo limit N`, `sudo off`, `sudo apply`, `logs`. `limit` dan `off`
   langsung diterapkan, jadi bisa dicoba **tanpa memasang daemon**.
 - Mematikan batas hanya menulis `bfF0=00`; firmware mengabaikan `bfD0`/`bfE0` saat mode 00.
+- **Uji di Mac (3 Nov):** `sudo chargecap limit 90` menulis `bfD0=90, bfE0=85, bfF0=2` tanpa 0x89 dan pengisian
+  berhenti di 97%. `scripts/phase1-daemon-test.sh`: `bfF0` dimatikan paksa, daemon mengembalikannya
+  `02` dalam ±58 detik (peristiwa power/timer), lalu `chargecap off` mengembalikan pengisian normal.
 - Tanpa XPC di Fase 1: CLI menulis `config.json` (root) dan menerapkannya sendiri; daemon membaca ulang
   file itu tiap menit. XPC baru dibutuhkan kalau aplikasi menu bar (Fase 4) harus berjalan tanpa root.
 
