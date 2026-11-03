@@ -136,5 +136,5 @@ fi
 say ""
 chargecap logs 3 2>/dev/null
 say ""
-say "Selesai. Batas masih MATI. Nyalakan dengan: sudo chargecap limit 80"
+say "Selesai. Batas mengikuti config.json (baru dipasang: mati). Lihat: chargecap status. Atur: chargecap limit 80 (tanpa sudo)"
 say "Status: chargecap status      Copot: sudo $ROOT/scripts/uninstall.sh"

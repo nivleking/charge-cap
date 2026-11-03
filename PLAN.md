@@ -280,7 +280,7 @@ diminta `config.json`: saat start, setelah bangun, saat sumber daya berubah, dan
 - Uji semalam dengan layar tertutup + dicas. Pagi harinya jalankan `chargecap report` (target: tertinggi ≤ batas + 1).
 - Uji restart, logout, update macOS minor.
 
-### Fase 4 — Menu bar — KODE SELESAI 3 Nov 2026 (belum dipasang/dilihat Kelvin)
+### Fase 4 — Menu bar — TERPASANG 3 Nov 2026 (daemon baru + modul KTools; tampilan menu belum dilihat Kelvin)
 - Dipilih jalur **tanpa XPC**: folder config dibuat `775 root:admin` oleh `install.sh`, jadi aplikasi menu bar dan
   CLI mengganti `config.json` tanpa sudo; daemon memantau folder itu dan menerapkannya seketika. Daemon tetap
   memvalidasi semua nilai (batas 20–100, suhu 30–50), jadi paling buruk file yang salah mengubah atau mematikan batas.
@@ -288,8 +288,9 @@ diminta `config.json`: saat start, setelah bangun, saat sumber daya berubah, dan
   (daemon belum terpasang / kunci belum sesuai), **Batas pengisian** (60–95, tanpa batas), **Isi sampai 100% sekali**,
   **Proteksi suhu** (mati/35/38/40 °C), buka log dan folder config. Dipakai dua tempat: `ChargeCap.app`
   (`scripts/make-app.sh [--install]`, target `ChargeCapMenu`) dan modul **KTools** (`ChargeCapModule`).
-- Menu app dan KTools dilihat langsung belum diuji; perlu `sudo scripts/install.sh` ulang agar daemon baru
-  (memantau config, proteksi suhu) dan izin folder terpasang.
+- **3 Nov:** `sudo scripts/install.sh` ulang berhasil (daemon baru, folder `775 root:admin`). `chargecap heat 35`
+  tanpa sudo menulis config dan daemon mencatat `[config]` tick seketika; batas 80% tetap aktif selama penggantian.
+  KTools dibangun ulang dengan modul ChargeCap. Menu dilihat langsung belum diuji.
 
 ### Fase 5 — Opsional
 - **Sailing**: sudah tercakup jarak mulai-ulang (`chargecap gap N`, 1–15).
