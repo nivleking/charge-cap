@@ -262,7 +262,7 @@ diminta `config.json`: saat start, setelah bangun, saat sumber daya berubah, dan
 - Tanpa XPC di Fase 1: CLI menulis `config.json` (root) dan menerapkannya sendiri; daemon membaca ulang
   file itu tiap menit. XPC baru dibutuhkan kalau aplikasi menu bar (Fase 4) harus berjalan tanpa root.
 
-### Fase 2 — Pasang & copot — SKRIP SELESAI 3 Nov 2026 (dry-run lulus; belum dipasang)
+### Fase 2 — Pasang & copot — TERPASANG di Mac Kelvin 3 Nov 2026 (restart belum diuji)
 - `scripts/install.sh` (`--dry-run` mengubah tidak ada apa pun): membangun release sebagai user biasa bila perlu,
   menolak jalan kalau AlDente aktif, memasang semuanya milik `root:wheel` (`/usr/local/libexec/chargecap/chargecapd`,
   `/usr/local/bin/chargecap`, `/Library/LaunchDaemons/dev.kelvin.chargecap.plist`, config di
@@ -270,7 +270,9 @@ diminta `config.json`: saat start, setelah bangun, saat sumber daya berubah, dan
   dibuat **mati**; config yang sudah ada tidak diubah.
 - `scripts/uninstall.sh` (`--dry-run`, `--purge`): mematikan batas **lebih dulu**, baru menghentikan daemon dan
   menghapus file; config dan log dibiarkan kecuali `--purge`.
-- Uji yang tersisa: pasang sungguhan, nyalakan batas, **restart**: daemon harus jalan sendiri dan batas tetap ada.
+- **3 Nov 2026:** `sudo scripts/install.sh` berhasil; daemon jalan (pid dari launchd), mematikan sisa batas AlDente,
+  lalu `sudo chargecap limit 80` dengan baterai 93%: pengisian berhenti dalam ±20 detik dan `status` sesuai.
+- Uji yang tersisa: **restart** (daemon harus jalan sendiri dan batas tetap ada) dan uji tidur.
 
 ### Fase 3 — Uji ketahanan (beberapa hari)
 - Alat: `chargecap report` (3 Nov 2026, dites) membandingkan `DailyMaxSoc` dari gauge baterai dengan batas
