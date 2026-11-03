@@ -13,7 +13,11 @@ sudo .build/release/chargecap limit 80      # set batas 80% dan terapkan sekaran
 sudo .build/release/chargecap off           # matikan batas (tombol darurat)
 sudo .build/release/chargecap apply         # samakan kunci dengan config.json sekali
 .build/release/chargecap logs
-sudo .build/release/chargecapd              # daemon (Fase 2 memasangnya sebagai LaunchDaemon)
+sudo .build/release/chargecapd              # daemon di foreground (untuk uji)
+
+scripts/install.sh --dry-run                # lihat apa yang akan dipasang (tanpa sudo, tidak mengubah apa pun)
+sudo scripts/install.sh                     # pasang LaunchDaemon: jalan sendiri sejak boot, batas tetap MATI
+sudo scripts/uninstall.sh [--purge]         # copot, batas dimatikan dulu
 ```
 
 Config: `/Library/Application Support/ChargeCap/config.json` (`CHARGECAP_DIR` untuk mengganti, `CHARGECAP_LOG`
