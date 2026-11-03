@@ -1,0 +1,56 @@
+ChargeCap Fase 0a — mengamati AlDente (2026-10-24T08-45-55)
+Mac: MacBookPro18,1, macOS 15.8.1, AlDente 1.38.1
+Skrip ini hanya MEMBACA. Tidak ada nilai SMC yang diubah.
+
+[08:46:04] 1. AlDente batas 100% | LULUS | baterai 73% | mengisi=Yes | charger=Yes | ChargerInhibitReason=0 | NotChargingReason=0
+           catatan: baterai mengisi
+           snapshot SMC: 2179 tombol → a-mengisi-1.txt
+           snapshot SMC: 2179 tombol → a-mengisi-2.txt
+[08:48:35] 2. AlDente batas di bawah % | GAGAL | baterai 73% | mengisi=Yes | charger=Yes | ChargerInhibitReason=0 | NotChargingReason=0
+           catatan: pengisian tidak berhenti dalam 120 detik
+           snapshot SMC: 2179 tombol → b-berhenti.txt
+[08:49:02] 3. AlDente kembali 100% | LULUS | baterai 74% | mengisi=Yes | charger=Yes | ChargerInhibitReason=0 | NotChargingReason=0
+           catatan: baterai mengisi lagi
+           snapshot SMC: 2179 tombol → c-mengisi-lagi.txt
+
+=== Tombol SMC yang berubah saat AlDente menghentikan pengisian ===
+(diabaikan 453 tombol sensor yang memang naik-turun; daftar di noisy-keys.txt)
+tombol | saat mengisi | saat berhenti | setelah mengisi lagi
+aP01 | 07000000 | 09000000 | 04000000
+aP74 | 000c0000 | 020c0000 | 030c0000
+aP79 | cd0c0000 | cc0c0000 | ca0c0000
+BDD1 | 1f | 1d | 1d
+BDD2 | 1f | 1d | 1d
+BDD3 | 1f | 1d | 1d
+beo0 | 1f | 1d | 1d
+beo8 | 1f | 1d | 1d
+beoF | 1f | 1d | 1c
+bfI0 | 45 | 47 | 47
+bnN0 | 0000803f | 3333333f | 3333333f
+BRSC | 46 | 49 | 49
+BTIL | 9e1d0000 | bb140000 | bb140000
+BTRT | 0000803f | 3333333f | 3333333f
+BTSI | 9e1d0000 | bb140000 | bb140000
+BTSV | 59100000 | 8b100000 | 8b100000
+BTVI | 02 | 03 | 03
+BTVL | 59100000 | 8b100000 | 8b100000
+IP1b | 00000000 | 0030613d | 00000000   ← kembali ke nilai awal (kandidat kuat)
+IR4b | 00000000 | 000e803e | 00000000   ← kembali ke nilai awal (kandidat kuat)
+KINC | 2393 | 23cf | 23dc
+PP1b | 00000000 | 94d6313d | 00000000   ← kembali ke nilai awal (kandidat kuat)
+PR4b | 00000000 | d7be873e | 00000000   ← kembali ke nilai awal (kandidat kuat)
+SAQy | 03 | 01 | 01
+SARy | 03 | 01 | 01
+SBAS | 00008c42 | 00009242 | 00009242
+TAOL | 0000dc41 | 0000dd41 | 0080dd41
+TDER | 0000f341 | 0080f641 | 0080f641
+TDTP | 00000442 | 00400542 | 00800542
+TG0C | 00001a0000000000 | 00001b0000000000 | 00001b0000000000
+Tm06 | 00e01b42 | 00a01f42 | 00401e42
+Tp0A | 27d14242 | 27a14942 | 27b14442
+TPD2 | d8810942 | 186a0d42 | d0d50e42
+TRD3 | 9ce60f42 | 34081242 | 44ad1142
+VP2l | 005ee63f | 000ee63f | 00f6e43f
+VP9b | 007c4e3f | 00944e3f | 001c4e3f
+
+Selesai. Semua file ada di: /Users/kelvinsidhartasie/Documents/dev-lab/apps/rea-work/chargecap/logs/phase0-observe-2026-10-24T08-45-55
