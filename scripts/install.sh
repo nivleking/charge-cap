@@ -8,7 +8,8 @@
 #   /usr/local/libexec/chargecap/chargecapd           the daemon
 #   /usr/local/bin/chargecap                          the command line tool
 #   /Library/LaunchDaemons/dev.kelvin.chargecap.plist starts the daemon at boot, restarts it if it dies
-#   /Library/Application Support/ChargeCap/           config.json (created "off" if missing)
+#   /Library/Application Support/ChargeCap/           config.json (created "off" if missing); admins may edit it,
+#                                                     so the menu bar app and `chargecap limit` need no sudo
 # The limit stays OFF until you run: sudo chargecap limit 80
 # Undo everything with: sudo scripts/uninstall.sh
 
@@ -92,16 +93,20 @@ run install -d -m 755 -o root -g wheel "$LIBEXEC"
 run install -m 755 -o root -g wheel "$BIN/chargecapd" "$LIBEXEC/chargecapd"
 run install -d -m 755 -o root -g wheel "$(dirname "$CLI_DEST")"
 run install -m 755 -o root -g wheel "$BIN/chargecap" "$CLI_DEST"
-run install -d -m 755 -o root -g wheel "$CONFIG_DIR"
+# Admins may replace config.json (the menu bar app and `chargecap limit` need no sudo); the daemon validates
+# every value (limit 20-100, heat 30-50 C), so the worst a stray edit does is change or switch off the limit.
+run install -d -m 775 -o root -g admin "$CONFIG_DIR"
 if [ ! -f "$CONFIG_DIR/config.json" ]; then
     if [ "$DRY" -eq 1 ]; then
         say "  [dry-run] buat $CONFIG_DIR/config.json (batas mati)"
     else
         printf '{\n  "enabled" : false,\n  "gap" : 5,\n  "limit" : 80\n}\n' > "$CONFIG_DIR/config.json"
-        chown root:wheel "$CONFIG_DIR/config.json"; chmod 644 "$CONFIG_DIR/config.json"
+        chown root:admin "$CONFIG_DIR/config.json"; chmod 664 "$CONFIG_DIR/config.json"
     fi
 else
-    say "  config.json sudah ada, tidak diubah"
+    say "  config.json sudah ada, isinya tidak diubah"
+    run chown root:admin "$CONFIG_DIR/config.json"
+    run chmod 664 "$CONFIG_DIR/config.json"
 fi
 if [ "$DRY" -eq 1 ]; then
     say "  [dry-run] pasang $PLIST (root:wheel 644)"

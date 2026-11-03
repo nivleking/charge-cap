@@ -1,3 +1,4 @@
+import ChargeCapCore
 import Foundation
 import IOKit
 
@@ -11,6 +12,14 @@ public struct BatteryInfo: Equatable, Sendable {
     public var dailyMaxSoc: Int?
     public var dailyMinSoc: Int?
     public var cycleCount: Int?
+    /// Battery temperature in °C (the gauge reports hundredths of a degree).
+    public var temperatureC: Double?
+}
+
+extension BatteryInfo {
+    public var conditions: Conditions {
+        Conditions(percent: percent, temperatureC: temperatureC, externalConnected: externalConnected)
+    }
 }
 
 public enum Battery {
@@ -30,6 +39,7 @@ public enum Battery {
             notChargingReason: (charger?["NotChargingReason"] as? NSNumber)?.int64Value ?? 0,
             dailyMaxSoc: (data?["DailyMaxSoc"] as? NSNumber)?.intValue,
             dailyMinSoc: (data?["DailyMinSoc"] as? NSNumber)?.intValue,
-            cycleCount: (dict["CycleCount"] as? NSNumber)?.intValue)
+            cycleCount: (dict["CycleCount"] as? NSNumber)?.intValue,
+            temperatureC: (dict["Temperature"] as? NSNumber).map { $0.doubleValue / 100 })
     }
 }

@@ -9,6 +9,8 @@ let package = Package(
         .executable(name: "chargecapd", targets: ["chargecapd"]),
         .executable(name: "chargecap", targets: ["chargecap"]),
         .library(name: "ChargeCapCore", targets: ["ChargeCapCore"]),
+        .library(name: "ChargeCapUI", targets: ["ChargeCapUI"]),
+        .executable(name: "ChargeCapMenu", targets: ["ChargeCapMenu"]),
     ],
     targets: [
         // Thin C wrapper around the AppleSMC IOKit user client.
@@ -38,6 +40,17 @@ let package = Package(
         .executableTarget(
             name: "chargecap",
             dependencies: ["ChargeCapCore", "ChargeCapKit"]
+        ),
+        // Menu bar side: the service that reads the battery and edits config.json, with the menu. AppKit only.
+        .target(
+            name: "ChargeCapUI",
+            dependencies: ["ChargeCapCore", "ChargeCapKit"]
+        ),
+        // The standalone menu bar app (the same service is a module inside KTools). Named ChargeCapMenu because
+        // "ChargeCap" would clash with the `chargecap` command on a case-insensitive disk.
+        .executableTarget(
+            name: "ChargeCapMenu",
+            dependencies: ["ChargeCapUI"]
         ),
         .testTarget(
             name: "ChargeCapCoreTests",
