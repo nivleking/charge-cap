@@ -5,6 +5,7 @@
 //   sudo chargecap off          switch the limit off and apply it now (the emergency button)
 //   sudo chargecap apply        make the keys match config.json once (what the daemon does every minute)
 //   chargecap logs [N]          last N lines of the daemon log (default 20)
+//   chargecap report            did the battery stay under the limit today? (for the multi-day soak test)
 
 import ChargeCapCore
 import ChargeCapKit
@@ -19,6 +20,7 @@ let usage = """
            sudo chargecap off
            sudo chargecap apply
            chargecap logs [lines]
+           chargecap report
     """
 
 func fail(_ message: String, code: Int32 = 1) -> Never {
@@ -98,6 +100,20 @@ case "logs":
     let n = args.first.flatMap(Int.init) ?? 20
     let text = log.tail(n)
     print(text.isEmpty ? "Belum ada log di \(log.path)" : text)
+
+case "report":
+    let config = ConfigStore.load(from: directory)
+    guard let b = Battery.read() else { fail("Baterai tidak terbaca") }
+    print("Baterai sekarang: \(b.percent)%" + (b.cycleCount.map { ", siklus \($0)" } ?? ""))
+    print("Tertinggi hari ini (gauge): \(b.dailyMaxSoc.map { "\($0)%" } ?? "?"), terendah: \(b.dailyMinSoc.map { "\($0)%" } ?? "?")")
+    switch Soak.verdict(dailyMax: b.dailyMaxSoc, limit: config.validated().limit, enabled: config.enabled) {
+    case .withinLimit: print("Batas \(config.limit)%: ✓ baterai tidak melewati batas")
+    case .exceeded(let by): print("Batas \(config.limit)%: ✗ sempat melewati batas sebesar \(by) poin (bisa terjadi sebelum batas dinyalakan hari ini)")
+    case .notApplicable: print("Batas: mati, tidak ada yang dinilai")
+    }
+    let s = Soak.summarize(log: log.tail(5000), since: Date().addingTimeInterval(-86_400))
+    print("Daemon 24 jam terakhir: \(s.starts) start, \(s.wakes) kejadian bangun, \(s.applied) kali menulis ulang kunci, \(s.failed) gagal")
+    if s.failed > 0 { print("  ada yang gagal: lihat `chargecap logs 50`") }
 
 case "-h", "--help", "help":
     print(usage)

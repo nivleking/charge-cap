@@ -13,6 +13,7 @@ sudo .build/release/chargecap limit 80      # set batas 80% dan terapkan sekaran
 sudo .build/release/chargecap off           # matikan batas (tombol darurat)
 sudo .build/release/chargecap apply         # samakan kunci dengan config.json sekali
 .build/release/chargecap logs
+.build/release/chargecap report             # tertinggi hari ini vs batas, ringkasan log 24 jam
 sudo .build/release/chargecapd              # daemon di foreground (untuk uji)
 
 scripts/install.sh --dry-run                # lihat apa yang akan dipasang (tanpa sudo, tidak mengubah apa pun)

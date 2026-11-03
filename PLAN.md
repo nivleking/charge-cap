@@ -273,7 +273,9 @@ diminta `config.json`: saat start, setelah bangun, saat sumber daya berubah, dan
 - Uji yang tersisa: pasang sungguhan, nyalakan batas, **restart**: daemon harus jalan sendiri dan batas tetap ada.
 
 ### Fase 3 — Uji ketahanan (beberapa hari)
-- Uji semalam dengan layar tertutup + dicas. Pagi harinya cek `DailyMaxSoc` di `ioreg` (target: ≤ batas + 1).
+- Alat: `chargecap report` (3 Nov 2026, dites) membandingkan `DailyMaxSoc` dari gauge baterai dengan batas
+  (toleransi +1) dan merangkum log daemon 24 jam: start, bangun, tulis ulang, gagal.
+- Uji semalam dengan layar tertutup + dicas. Pagi harinya jalankan `chargecap report` (target: tertinggi ≤ batas + 1).
 - Uji restart, logout, update macOS minor.
 
 ### Fase 4 — Aplikasi menu bar (±1 hari)

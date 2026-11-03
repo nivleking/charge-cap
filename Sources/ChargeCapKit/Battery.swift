@@ -7,6 +7,10 @@ public struct BatteryInfo: Equatable, Sendable {
     public var externalConnected: Bool
     /// `NotChargingReason` from AppleSmartBattery's ChargerData; non-zero while the firmware holds charging back.
     public var notChargingReason: Int64
+    /// Highest and lowest charge the gauge saw today (BatteryData), and lifetime cycles.
+    public var dailyMaxSoc: Int?
+    public var dailyMinSoc: Int?
+    public var cycleCount: Int?
 }
 
 public enum Battery {
@@ -18,10 +22,14 @@ public enum Battery {
         guard IORegistryEntryCreateCFProperties(service, &props, kCFAllocatorDefault, 0) == KERN_SUCCESS,
               let dict = props?.takeRetainedValue() as? [String: Any] else { return nil }
         let charger = dict["ChargerData"] as? [String: Any]
+        let data = dict["BatteryData"] as? [String: Any]
         return BatteryInfo(
             percent: (dict["CurrentCapacity"] as? NSNumber)?.intValue ?? 0,
             isCharging: (dict["IsCharging"] as? NSNumber)?.boolValue ?? false,
             externalConnected: (dict["ExternalConnected"] as? NSNumber)?.boolValue ?? false,
-            notChargingReason: (charger?["NotChargingReason"] as? NSNumber)?.int64Value ?? 0)
+            notChargingReason: (charger?["NotChargingReason"] as? NSNumber)?.int64Value ?? 0,
+            dailyMaxSoc: (data?["DailyMaxSoc"] as? NSNumber)?.intValue,
+            dailyMinSoc: (data?["DailyMinSoc"] as? NSNumber)?.intValue,
+            cycleCount: (dict["CycleCount"] as? NSNumber)?.intValue)
     }
 }
