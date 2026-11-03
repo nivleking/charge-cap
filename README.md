@@ -9,8 +9,11 @@ swift build -c release
 swift test                                  # logika memakai SMC palsu, tidak menyentuh perangkat keras
 
 .build/release/chargecap status             # baterai, kunci SMC, config (tanpa sudo)
-sudo .build/release/chargecap limit 80      # set batas 80% dan terapkan sekarang
-sudo .build/release/chargecap off           # matikan batas (tombol darurat)
+chargecap limit 80                          # set batas 80% (daemon menerapkan seketika; tanpa sudo)
+sudo chargecap off                          # matikan batas (tombol darurat, jalan walau daemon mati)
+chargecap gap 5                             # mulai mengisi lagi 5 poin di bawah batas
+chargecap heat 35                           # berhenti mengisi di 35 °C ('heat off' mematikan)
+chargecap topup                             # isi sampai 100% sekali, lalu batas kembali
 sudo .build/release/chargecap apply         # samakan kunci dengan config.json sekali
 .build/release/chargecap logs
 .build/release/chargecap report             # tertinggi hari ini vs batas, ringkasan log 24 jam
@@ -23,3 +26,5 @@ sudo scripts/uninstall.sh [--purge]         # copot, batas dimatikan dulu
 
 Config: `/Library/Application Support/ChargeCap/config.json` (`CHARGECAP_DIR` untuk mengganti, `CHARGECAP_LOG`
 untuk log). Bawaan: **mati**. `smc-rw` adalah alat Fase 0 untuk membaca kunci SMC.
+
+Aplikasi menu bar: `scripts/make-app.sh --install` (ChargeCap.app), atau modul ChargeCap di KTools.

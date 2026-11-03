@@ -280,14 +280,25 @@ diminta `config.json`: saat start, setelah bangun, saat sumber daya berubah, dan
 - Uji semalam dengan layar tertutup + dicas. Pagi harinya jalankan `chargecap report` (target: tertinggi ≤ batas + 1).
 - Uji restart, logout, update macOS minor.
 
-### Fase 4 — Aplikasi menu bar (±1 hari)
-- `MenuBarExtra` SwiftUI, dibangun dengan SwiftPM lalu dibungkus jadi `.app` dengan skrip (tanpa Xcode).
+### Fase 4 — Menu bar — KODE SELESAI 3 Nov 2026 (belum dipasang/dilihat Kelvin)
+- Dipilih jalur **tanpa XPC**: folder config dibuat `775 root:admin` oleh `install.sh`, jadi aplikasi menu bar dan
+  CLI mengganti `config.json` tanpa sudo; daemon memantau folder itu dan menerapkannya seketika. Daemon tetap
+  memvalidasi semua nilai (batas 20–100, suhu 30–50), jadi paling buruk file yang salah mengubah atau mematikan batas.
+- `ChargeCapUI` (`ChargeCapService`): membaca baterai dan kunci SMC (tanpa root), menu: ringkasan, suhu, peringatan
+  (daemon belum terpasang / kunci belum sesuai), **Batas pengisian** (60–95, tanpa batas), **Isi sampai 100% sekali**,
+  **Proteksi suhu** (mati/35/38/40 °C), buka log dan folder config. Dipakai dua tempat: `ChargeCap.app`
+  (`scripts/make-app.sh [--install]`, target `ChargeCapMenu`) dan modul **KTools** (`ChargeCapModule`).
+- Menu app dan KTools dilihat langsung belum diuji; perlu `sudo scripts/install.sh` ulang agar daemon baru
+  (memantau config, proteksi suhu) dan izin folder terpasang.
 
 ### Fase 5 — Opsional
-- *Sailing* (biarkan turun ke batas-x% sebelum isi lagi) — sebenarnya sudah tercakup histeresis.
-- *Heat protection*: berhenti mengisi kalau suhu baterai tinggi (baca suhu dari `AppleSmartBattery`/SMC).
-- *Discharge* manual (`CHIE = 0x08`).
-- *Top up* sekali ke 100% sebelum bepergian.
+- **Sailing**: sudah tercakup jarak mulai-ulang (`chargecap gap N`, 1–15).
+- **Proteksi suhu (selesai, dites)**: `chargecap heat 35`; `Policy` membekukan batas berhenti di persen saat mulai
+  panas dan melepasnya 3 °C di bawah ambang; tidak pernah menaikkan batas, menang atas top up.
+- **Top up sekali (selesai, dites)**: `chargecap topup`; batas ditunda sampai 100%, lalu daemon mengembalikannya.
+- **Discharge manual (`CHIE = 0x08`) — SENGAJA BELUM**: bisa membuat Mac menguras baterai walau charger terpasang
+  dan tersangkut kalau daemon mati. Butuh uji perangkat keras seperti Fase 0 (apakah `CHIE=08` bekerja di
+  M1 Pro, apakah bertahan, cara pulih) dan pengaman (kembalikan `CHIE=00` tiap tick, batas bawah 20%).
 
 ## 6. Keamanan
 
