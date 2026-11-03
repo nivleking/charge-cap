@@ -1,0 +1,18 @@
+{"time":"2026-11-03T10:20:22+0700","write": printf '%s' {"key":"bfD0","before":"50000000","wanted":"64000000","after":"64000000","ok":true} ;; *) printf '%s' {\"key\":\"bfD0\",\"before\":\"50000000\",\"wanted\":\"64000000\",\"after\":\"64000000\",\"ok\":true} ;; esac)}
+{"time":"2026-11-03T10:20:22+0700","write": printf '%s' {"key":"bfE0","before":"4f000000","wanted":"63000000","after":"63000000","ok":true} ;; *) printf '%s' {\"key\":\"bfE0\",\"before\":\"4f000000\",\"wanted\":\"63000000\",\"after\":\"63000000\",\"ok\":true} ;; esac)}
+{"time":"2026-11-03T10:21:07+0700","step":"1. batas 100%","result":"LULUS","pct":80,"charging":"Yes","external":"Yes","bfD0":"64000000","bfE0":"63000000","not_charging_reason":"0","pmset":"-InternalBattery-0 (id=22216803)\t80%; charging; (no estimate) present: true","note":"baterai mengisi"}
+{"time":"2026-11-03T10:21:07+0700","write": printf '%s' smc-rw:}
+{"time":"write","write":bfD0:}
+{"time":"SMC","write":error}
+{"time":"0x89 ;; *) printf '%s' smc-rw:","write":write}
+{"time":"bfD0:","write":SMC}
+{"time":"error","write":0x89 ;; esac)}
+{"time":"2026-11-03T10:21:07+0700","write": printf '%s' {"key":"bfE0","before":"63000000","wanted":"4b000000","after":"4b000000","ok":true} ;; *) printf '%s' {\"key\":\"bfE0\",\"before\":\"63000000\",\"wanted\":\"4b000000\",\"after\":\"4b000000\",\"ok\":true} ;; esac)}
+{"time":"2026-11-03T10:21:08+0700","step":"2. batas 80%/75%","result":"GAGAL","pct":80,"charging":"Yes","external":"Yes","bfD0":"50000000","bfE0":"4b000000","not_charging_reason":"0","pmset":"-InternalBattery-0 (id=22216803)\t80%; charging; (no estimate) present: true","note":"pengisian tidak berhenti dalam 120 detik"}
+{"time":"2026-11-03T10:21:38+0700","step":"2b. 30 detik kemudian","result":"GAGAL","pct":81,"charging":"Yes","external":"Yes","bfD0":"50000000","bfE0":"4b000000","not_charging_reason":"0","pmset":"-InternalBattery-0 (id=22216803)\t81%; charging; (no estimate) present: true","note":"pengisian tetap berhenti"}
+{"time":"2026-11-03T10:21:38+0700","write": printf '%s' {"key":"bfD0","before":"50000000","wanted":"64000000","after":"64000000","ok":true} ;; *) printf '%s' {\"key\":\"bfD0\",\"before\":\"50000000\",\"wanted\":\"64000000\",\"after\":\"64000000\",\"ok\":true} ;; esac)}
+{"time":"2026-11-03T10:21:38+0700","write": printf '%s' {"key":"bfE0","before":"4b000000","wanted":"63000000","after":"63000000","ok":true} ;; *) printf '%s' {\"key\":\"bfE0\",\"before\":\"4b000000\",\"wanted\":\"63000000\",\"after\":\"63000000\",\"ok\":true} ;; esac)}
+{"time":"2026-11-03T10:21:38+0700","step":"3. batas 100% lagi","result":"LULUS","pct":81,"charging":"Yes","external":"Yes","bfD0":"64000000","bfE0":"63000000","not_charging_reason":"0","pmset":"-InternalBattery-0 (id=22216803)\t81%; charging; (no estimate) present: true","note":"pengisian JALAN lagi"}
+{"key":"bfD0","before":"64000000","wanted":"50000000","after":"50000000","ok":true}
+{"key":"bfE0","before":"63000000","wanted":"4f000000","after":"4f000000","ok":true}
+{"time":"2026-11-03T10:22:23+0700","step":"pemulihan","result":"LULUS","pct":82,"charging":"Yes","external":"Yes","bfD0":"50000000","bfE0":"4f000000","not_charging_reason":"0","pmset":"-InternalBattery-0 (id=22216803)\t82%; charging; 0:45 remaining present: true","note":"nilai dikembalikan ke kondisi sebelum uji"}

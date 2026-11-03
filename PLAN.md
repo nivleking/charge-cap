@@ -58,6 +58,32 @@ artinya baterai memang sempat penuh 100% hari itu walau AlDente terpasang.
 - Karena itu Fase 0 dipecah: **0a mengamati AlDente** (hanya baca) untuk menemukan tombol yang dipakainya,
   baru **0b menulis** tombol itu sendiri.
 
+## 2c. Temuan 3 Nov 2026: `bfD0`/`bfE0` saja tidak cukup, ada `bfF0` (mode)
+
+- **Fase 0b percobaan 1** (`logs/phase0-write-2026-11-03T10-20-22-main`): menulis `bfD0`/`bfE0` lewat `smc-rw`
+  berhasil terbaca balik, dan batas 100% membuat pengisian jalan. Tetapi dengan `bfD0=80% bfE0=75%`
+  pengisian **tidak berhenti**; setelah nilai awal (80/79) dipulihkan baterai terus naik ke 83%.
+  Jadi dua tombol itu **bukan** saklar sendiri.
+- **`bfF0` (ui8) adalah mode/pengaktif.** Tercatat `02` selama AlDente membatasi (di snapshot Fase 0a, mengisi
+  maupun berhenti) dan `00` setelah AlDente ditutup. String di biner AlDente menyebut `bfF0` bersama
+  `bfD0` dan `bfE0` (urutan `bfF0, bfD0, bfE0`). Hipotesis: `bfF0=02` menyalakan batas firmware.
+  `smc-rw` sekarang boleh menulis `bfF0` (1 byte). Percobaan 2 menguji hipotesis ini.
+- Catatan: satu tulisan `bfD0=80%` sempat mengembalikan `SMC error 0x89` walau nilainya terbaca berubah;
+  penyebab belum diketahui.
+- **Percobaan 2** (`logs/phase0-write-2026-11-03T10-28-40-main`): `bfF0=02` ditulis tetapi **kembali ke 00**
+  sendiri, dan penulisan `bfD0` dijawab `SMC error 0x89`. Penyebab: firmware menolak konfigurasi dengan
+  `bfD0` (berhenti) < `bfE0` (mulai lagi) dan mematikan `bfF0`.
+- **Percobaan 3, BERHASIL** (log `phase0-write-2026-11-03T10-36-32-main`): dengan urutan tulis yang benar
+  pengisian **berhenti dalam ±50 detik** (92%/87%), bertahan, dan jalan lagi saat batas 100%.
+  `NotChargingReason=36028797018963968`, sama seperti saat AlDente menghentikan pengisian.
+  **Resep:** menyalakan = tulis `bfE0`, lalu `bfD0`, lalu `bfF0=02` (terakhir). Mematikan = `bfF0=00` dulu,
+  lalu `bfD0`, lalu `bfE0`. Invarian: `bfD0 >= bfE0` di setiap saat; saat menurunkan, `bfE0` dulu; saat
+  menaikkan, `bfD0` dulu.
+- **Belum diuji:** bertahan saat tidur (uji tidur dilewati 3 Nov), bertahan setelah restart
+  (`--reboot-test`/`--after-reboot`), dan apa arti `bfI0`.
+- Skrip uji diperbaiki: error sintaks bash 3.2 (`case` di dalam `$(...)`), langkah tunggu kini selalu jalan
+  (dulu terlewat bila tulisan gagal), menunggu 240 detik untuk berhenti, `bfF0` ikut dicatat dan dipulihkan.
+
 ## 3. Yang kita pelajari dari AlDente
 
 AlDente = **aplikasi menu bar** (yang memutuskan) + **helper root** `com.apphousekitchen.aldente-pro.helper`

@@ -1,0 +1,25 @@
+ChargeCap Fase 0b — uji tulis bfD0/bfE0 (2026-11-03T10:20:22)
+Mac: MacBookPro18,1, macOS 15.8.1
+Nilai awal (sebelum semua uji): bfD0=80% bfE0=79%
+
+           tulis bfD0 = 100% → {"key":"bfD0","before":"50000000","wanted":"64000000","after":"64000000","ok":true}
+           tulis bfE0 = 99% → {"key":"bfE0","before":"4f000000","wanted":"63000000","after":"63000000","ok":true}
+[10:21:07] 1. batas 100% | LULUS | baterai 80% | mengisi=Yes | charger=Yes | bfD0=100% bfE0=99% | NotChargingReason=0
+           catatan: baterai mengisi
+           tulis bfD0 = 80% → smc-rw: write bfD0: SMC error 0x89
+           tulis bfE0 = 75% → {"key":"bfE0","before":"63000000","wanted":"4b000000","after":"4b000000","ok":true}
+[10:21:08] 2. batas 80%/75% | GAGAL | baterai 80% | mengisi=Yes | charger=Yes | bfD0=80% bfE0=75% | NotChargingReason=0
+           catatan: pengisian tidak berhenti dalam 120 detik
+[10:21:38] 2b. 30 detik kemudian | GAGAL | baterai 81% | mengisi=Yes | charger=Yes | bfD0=80% bfE0=75% | NotChargingReason=0
+           catatan: pengisian tetap berhenti
+           tulis bfD0 = 100% → {"key":"bfD0","before":"50000000","wanted":"64000000","after":"64000000","ok":true}
+           tulis bfE0 = 99% → {"key":"bfE0","before":"4b000000","wanted":"63000000","after":"63000000","ok":true}
+[10:21:38] 3. batas 100% lagi | LULUS | baterai 81% | mengisi=Yes | charger=Yes | bfD0=100% bfE0=99% | NotChargingReason=0
+           catatan: pengisian JALAN lagi
+Uji tidur dilewati.
+
+Mengembalikan nilai awal: bfD0=80% bfE0=79%
+[10:22:23] pemulihan | LULUS | baterai 82% | mengisi=Yes | charger=Yes | bfD0=80% bfE0=79% | NotChargingReason=0
+           catatan: nilai dikembalikan ke kondisi sebelum uji
+
+Selesai. Semua file ada di: /Users/kelvinsidhartasie/Documents/dev-lab/apps/rea-work/chargecap/logs/phase0-write-2026-11-03T10-20-22-main

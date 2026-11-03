@@ -39,27 +39,45 @@ battery_state() {
     CHARGING="$(ioreg_value IsCharging)"
     EXTERNAL="$(ioreg_value ExternalConnected)"
     NOTCHG="$(charger_value NotChargingReason)"
-    BFD0="$(smc_hex bfD0)"; BFE0="$(smc_hex bfE0)"
+    BFD0="$(smc_hex bfD0)"; BFE0="$(smc_hex bfE0)"; BFF0="$(smc_hex bfF0)"
     PMSET="$(pmset -g batt | tail -1 | sed -E 's/^ *//')"
 }
 
 record() {  # record STEP RESULT NOTE
     battery_state
-    say "[$(date +%H:%M:%S)] $1 | $2 | baterai ${PCT}% | mengisi=$CHARGING | charger=$EXTERNAL | bfD0=$(hex_to_pct "$BFD0")% bfE0=$(hex_to_pct "$BFE0")% | NotChargingReason=$NOTCHG"
+    say "[$(date +%H:%M:%S)] $1 | $2 | baterai ${PCT}% | mengisi=$CHARGING | charger=$EXTERNAL | bfF0=$BFF0 bfD0=$(hex_to_pct "$BFD0")% bfE0=$(hex_to_pct "$BFE0")% | NotChargingReason=$NOTCHG"
     [ -n "${3:-}" ] && say "           catatan: $3"
     printf '{"time":"%s","step":"%s","result":"%s","pct":%s,"charging":"%s","external":"%s","bfD0":"%s","bfE0":"%s","not_charging_reason":"%s","pmset":"%s","note":"%s"}\n' \
         "$(date +%Y-%m-%dT%H:%M:%S%z)" "$(json_escape "$1")" "$2" "${PCT:-null}" "$CHARGING" "$EXTERNAL" \
         "$BFD0" "$BFE0" "$NOTCHG" "$(json_escape "$PMSET")" "$(json_escape "${3:-}")" >> "$JSONL"
 }
 
-set_limit() {  # set_limit STOP_PCT RESUME_PCT -> writes both keys, logs smc-rw's JSON, 0 if both read back correctly
-    local stop="$1" resume="$2" out rc=0
-    for pair in "bfD0 $stop" "bfE0 $resume"; do
-        set -- $pair
-        out="$("$SMC" write "$1" "$(pct_to_hex "$2")" 2>&1)" || rc=1
-        printf '{"time":"%s","write":%s}\n' "$(date +%Y-%m-%dT%H:%M:%S%z)" \
-            "$(case "$out" in \{*) printf '%s' "$out" ;; *) printf '"%s"' "$(json_escape "$out")" ;; esac)" >> "$JSONL"
-        say "           tulis $1 = $2% → $out"
+set_limit() {  # set_limit STOP_PCT RESUME_PCT -> 0 if every write read back correctly
+    # Order matters: the firmware rejects a config where stop < resume (SMC error 0x89, "bad argument")
+    # and then clears the mode flag bfF0. So lower resume first when lowering, raise stop first when raising,
+    # switch the mode on last and off first.
+    local stop="$1" resume="$2" mode out rc=0 key hex cur_resume order
+    if [ "$stop" -ge 100 ]; then mode="00"; else mode="02"; fi
+    cur_resume="$(hex_to_pct "$(smc_hex bfE0)")"
+    if [ "$resume" -lt "$cur_resume" ]; then
+        order="bfE0 bfD0"
+    else
+        order="bfD0 bfE0"
+    fi
+    if [ "$mode" = "00" ]; then order="bfF0 $order"; else order="$order bfF0"; fi
+    for key in $order; do
+        case "$key" in
+            bfF0) hex="$mode" ;;
+            bfD0) hex="$(pct_to_hex "$stop")" ;;
+            bfE0) hex="$(pct_to_hex "$resume")" ;;
+        esac
+        out="$("$SMC" write "$key" "$hex" 2>&1)" || rc=1
+        if [[ "$out" == \{* ]]; then
+            printf '{"time":"%s","write":%s}\n' "$(date +%Y-%m-%dT%H:%M:%S%z)" "$out" >> "$JSONL"
+        else
+            printf '{"time":"%s","write":"%s"}\n' "$(date +%Y-%m-%dT%H:%M:%S%z)" "$(json_escape "$out")" >> "$JSONL"
+        fi
+        say "           tulis $key = $hex → $out"
     done
     return "$rc"
 }
@@ -85,7 +103,7 @@ give_logs_back() {  # files created under sudo belong to root; hand them back to
 
 save_original() {  # keep the very first original values; later runs must not overwrite them
     if [ ! -f "$STATE" ]; then
-        printf 'ORIG_BFD0=%s\nORIG_BFE0=%s\n' "$(smc_hex bfD0)" "$(smc_hex bfE0)" > "$STATE"
+        printf 'ORIG_BFD0=%s\nORIG_BFE0=%s\nORIG_BFF0=%s\n' "$(smc_hex bfD0)" "$(smc_hex bfE0)" "$(smc_hex bfF0)" > "$STATE"
     fi
     # shellcheck disable=SC1090
     . "$STATE"
@@ -94,10 +112,11 @@ save_original() {  # keep the very first original values; later runs must not ov
 restore_original() {
     save_original
     say ""
-    say "Mengembalikan nilai awal: bfD0=$(hex_to_pct "$ORIG_BFD0")% bfE0=$(hex_to_pct "$ORIG_BFE0")%"
+    say "Mengembalikan nilai awal: bfF0=${ORIG_BFF0:-00} bfD0=$(hex_to_pct "$ORIG_BFD0")% bfE0=$(hex_to_pct "$ORIG_BFE0")%"
     "$SMC" write bfD0 "$ORIG_BFD0" >> "$JSONL" 2>&1
     "$SMC" write bfE0 "$ORIG_BFE0" >> "$JSONL" 2>&1
-    record "pemulihan" "$([ "$(smc_hex bfD0)" = "$ORIG_BFD0" ] && [ "$(smc_hex bfE0)" = "$ORIG_BFE0" ] && echo LULUS || echo GAGAL)" "nilai dikembalikan ke kondisi sebelum uji"
+    "$SMC" write bfF0 "${ORIG_BFF0:-00}" >> "$JSONL" 2>&1
+    record "pemulihan" "$([ "$(smc_hex bfD0)" = "$ORIG_BFD0" ] && [ "$(smc_hex bfE0)" = "$ORIG_BFE0" ] && [ "$(smc_hex bfF0)" = "${ORIG_BFF0:-00}" ] && echo LULUS || echo GAGAL)" "nilai dikembalikan ke kondisi sebelum uji"
 }
 
 pause() { printf '\n%s\n→ Tekan Enter kalau sudah... ' "$1"; read -r _; echo; }
@@ -120,7 +139,7 @@ preflight() {  # preflight NEED_ROOT(yes|no)
 header() {
     say "ChargeCap Fase 0b — $1 ($(date +%Y-%m-%dT%H:%M:%S))"
     say "Mac: $(sysctl -n hw.model), macOS $(sw_vers -productVersion)"
-    say "Nilai awal (sebelum semua uji): bfD0=$(hex_to_pct "$ORIG_BFD0")% bfE0=$(hex_to_pct "$ORIG_BFE0")%"
+    say "Nilai awal (sebelum semua uji): bfF0=${ORIG_BFF0:-00} bfD0=$(hex_to_pct "$ORIG_BFD0")% bfE0=$(hex_to_pct "$ORIG_BFE0")%"
     say ""
 }
 
@@ -197,16 +216,18 @@ fi
 # 2. our own limit at the current %, charging must stop
 battery_state
 stop=$((PCT)); resume=$((PCT - 5))
-if set_limit "$stop" "$resume" && wait_for_charging No 120; then
-    record "2. batas ${stop}%/${resume}%" "LULUS" "pengisian BERHENTI karena tulisan kita"
+set_limit "$stop" "$resume" || say "           (ada tulisan yang gagal, tes tetap menunggu)"
+if wait_for_charging No 240; then
+    record "2. batas ${stop}%/${resume}%" "LULUS" "pengisian BERHENTI karena tulisan kita (bfF0=02)"
 else
-    record "2. batas ${stop}%/${resume}%" "GAGAL" "pengisian tidak berhenti dalam 120 detik"
+    record "2. batas ${stop}%/${resume}%" "GAGAL" "pengisian tidak berhenti dalam 240 detik"
 fi
 sleep 30
 record "2b. 30 detik kemudian" "$([ "$(ioreg_value IsCharging)" = No ] && echo LULUS || echo GAGAL)" "pengisian tetap berhenti"
 
 # 3. lift the limit, charging must resume
-if set_limit 100 99 && wait_for_charging Yes 120; then
+set_limit 100 99 || say "           (ada tulisan yang gagal, tes tetap menunggu)"
+if wait_for_charging Yes 120; then
     record "3. batas 100% lagi" "LULUS" "pengisian JALAN lagi"
 else
     record "3. batas 100% lagi" "GAGAL" "pengisian tidak jalan lagi dalam 120 detik"
@@ -219,7 +240,7 @@ if [ "$answer" = y ] || [ "$answer" = Y ]; then
     battery_state
     stop=$((PCT)); resume=$((PCT - 5))
     set_limit "$stop" "$resume"
-    wait_for_charging No 120
+    wait_for_charging No 240
     record "4a. sebelum tidur" "INFO" "batas ${stop}%/${resume}%"
     before="$(date '+%Y-%m-%d %H:%M:%S')"
     pause "Tutup layar Mac sekarang, tunggu ±10 menit, buka lagi dan login."

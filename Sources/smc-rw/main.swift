@@ -10,6 +10,7 @@ import Foundation
 
 /// Keys we are allowed to write, with the byte size we expect them to have.
 let writableKeys: [String: UInt32] = [
+    "bfF0": 1,  // firmware charge limit mode: 00 = off, 02 = on (AlDente writes 02 while limiting)
     "bfD0": 4,  // firmware charge limit: stop charging at this %, ui32 little-endian (64000000 = 100%)
     "bfE0": 4,  // firmware charge limit: resume charging at this %, ui32 little-endian (63000000 = 99%)
     "CHTE": 4,  // charge inhibit on newer firmware (absent on MacBookPro18,1 + macOS 15.8.1)

@@ -1,0 +1,29 @@
+ChargeCap Fase 0b — uji tulis bfD0/bfE0 (2026-11-03T10:28:40)
+Mac: MacBookPro18,1, macOS 15.8.1
+Nilai awal (sebelum semua uji): bfF0=00 bfD0=80% bfE0=79%
+
+           tulis bfF0 = 00 → {"key":"bfF0","before":"00","wanted":"00","after":"00","ok":true}
+           tulis bfD0 = 64000000 → {"key":"bfD0","before":"50000000","wanted":"64000000","after":"64000000","ok":true}
+           tulis bfE0 = 63000000 → {"key":"bfE0","before":"4f000000","wanted":"63000000","after":"63000000","ok":true}
+[10:28:40] 1. batas 100% | LULUS | baterai 86% | mengisi=Yes | charger=Yes | bfF0=00 bfD0=100% bfE0=99% | NotChargingReason=0
+           catatan: baterai mengisi
+           tulis bfF0 = 02 → {"key":"bfF0","before":"00","wanted":"02","after":"02","ok":true}
+           tulis bfD0 = 56000000 → smc-rw: write bfD0: SMC error 0x89
+           tulis bfE0 = 51000000 → {"key":"bfE0","before":"63000000","wanted":"51000000","after":"51000000","ok":true}
+           (ada tulisan yang gagal, tes tetap menunggu)
+[10:32:42] 2. batas 86%/81% | GAGAL | baterai 89% | mengisi=Yes | charger=Yes | bfF0=00 bfD0=86% bfE0=81% | NotChargingReason=0
+           catatan: pengisian tidak berhenti dalam 240 detik
+[10:33:12] 2b. 30 detik kemudian | GAGAL | baterai 89% | mengisi=Yes | charger=Yes | bfF0=00 bfD0=86% bfE0=81% | NotChargingReason=0
+           catatan: pengisian tetap berhenti
+           tulis bfF0 = 00 → {"key":"bfF0","before":"00","wanted":"00","after":"00","ok":true}
+           tulis bfD0 = 64000000 → {"key":"bfD0","before":"56000000","wanted":"64000000","after":"64000000","ok":true}
+           tulis bfE0 = 63000000 → {"key":"bfE0","before":"51000000","wanted":"63000000","after":"63000000","ok":true}
+[10:33:13] 3. batas 100% lagi | LULUS | baterai 89% | mengisi=Yes | charger=Yes | bfF0=00 bfD0=100% bfE0=99% | NotChargingReason=0
+           catatan: pengisian JALAN lagi
+Uji tidur dilewati.
+
+Mengembalikan nilai awal: bfF0=00 bfD0=80% bfE0=79%
+[10:35:28] pemulihan | LULUS | baterai 91% | mengisi=Yes | charger=Yes | bfF0=00 bfD0=80% bfE0=79% | NotChargingReason=0
+           catatan: nilai dikembalikan ke kondisi sebelum uji
+
+Selesai. Semua file ada di: /Users/kelvinsidhartasie/Documents/dev-lab/apps/rea-work/chargecap/logs/phase0-write-2026-11-03T10-28-40-main
