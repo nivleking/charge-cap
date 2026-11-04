@@ -278,7 +278,12 @@ diminta `config.json`: saat start, setelah bangun, saat sumber daya berubah, dan
 - Alat: `chargecap report` (3 Nov 2026, dites) membandingkan `DailyMaxSoc` dari gauge baterai dengan batas
   (toleransi +1) dan merangkum log daemon 24 jam: start, bangun, tulis ulang, gagal.
 - Uji semalam dengan layar tertutup + dicas. Pagi harinya jalankan `chargecap report` (target: tertinggi ≤ batas + 1).
-- Uji restart, logout, update macOS minor.
+- **Hasil semalam (3–4 Nov 2026):** charger terpasang, batas 80%/75%. Baterai bertahan di 78–80% sepanjang malam,
+  `chargecap report`: ✓ tidak melewati batas, 5 kejadian bangun dari tidur, kunci SMC tetap `bfF0=02 bfD0=80%
+  bfE0=75%` setiap bangun (firmware tidak menghapusnya; penulisan ulang saat bangun hanya jaring pengaman), 0 gagal.
+  **Bertahan saat tidur: terbukti.** Catatan: sekali pengisian mulai lagi di 78% (bukan 75%): kemungkinan beda
+  antara persen UI (`CurrentCapacity`) dan persen mentah yang dipakai firmware; dipantau.
+- Masih terbuka: uji restart (daemon jalan sendiri dan batas tetap), logout, update macOS minor.
 
 ### Fase 4 — Menu bar — TERPASANG 3 Nov 2026 (daemon baru + modul KTools; tampilan menu belum dilihat Kelvin)
 - Dipilih jalur **tanpa XPC**: folder config dibuat `775 root:admin` oleh `install.sh`, jadi aplikasi menu bar dan
