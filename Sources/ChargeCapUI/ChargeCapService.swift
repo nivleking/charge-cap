@@ -1,6 +1,7 @@
 import AppKit
 import ChargeCapCore
 import ChargeCapKit
+import UserNotifications
 
 /// Everything the menu bar side does, behind one small API, so it runs on its own (the ChargeCap app) or as a
 /// module inside KTools. It never touches the SMC: it reads the battery and the keys (no root needed), and
@@ -17,6 +18,11 @@ public final class ChargeCapService: NSObject {
     public private(set) var keys: SMCState?
 
     private let directory = ConfigStore.directory()
+    private var previousSnapshot: BatterySnapshot?
+    private static let notifyKey = "chargecap.notify"
+
+    /// Tell me when charging stops at the limit and when heat protection starts. Off until switched on in the menu.
+    public var notificationsEnabled: Bool { UserDefaults.standard.bool(forKey: Self.notifyKey) }
     private var timer: Timer?
     private var watcher: PowerWatcher?
     private static let plist = "/Library/LaunchDaemons/dev.kelvin.chargecap.plist"
@@ -51,6 +57,11 @@ public final class ChargeCapService: NSObject {
         battery = Battery.read()
         config = ConfigStore.load(from: directory)
         keys = try? SMCClient().readState()
+        if let battery {
+            let snapshot = battery.snapshot
+            for event in BatteryEvents.detect(previous: previousSnapshot, current: snapshot, config: config) { announce(event) }
+            previousSnapshot = snapshot
+        }
         onChange?()
     }
 
@@ -96,9 +107,15 @@ public final class ChargeCapService: NSObject {
         refresh()
         let header = menu.addItem(withTitle: summary, action: nil, keyEquivalent: "")
         header.isEnabled = false
-        if let b = battery, let t = b.temperatureC {
-            let line = menu.addItem(withTitle: String(format: "Suhu baterai %.1f°C", t), action: nil, keyEquivalent: "")
-            line.isEnabled = false
+        if let b = battery {
+            var parts: [String] = []
+            if let t = b.temperatureC { parts.append(String(format: "Suhu %.1f°C", t)) }
+            if let health = b.healthPercent { parts.append("Kesehatan \(health)%") }
+            if let cycles = b.cycleCount { parts.append("\(cycles) siklus") }
+            if !parts.isEmpty {
+                let line = menu.addItem(withTitle: parts.joined(separator: " · "), action: nil, keyEquivalent: "")
+                line.isEnabled = false
+            }
         }
         if let warning {
             let w = menu.addItem(withTitle: warning, action: nil, keyEquivalent: "")
@@ -132,6 +149,8 @@ public final class ChargeCapService: NSObject {
         }
         menu.addItem(withTitle: "Proteksi suhu", action: nil, keyEquivalent: "").submenu = heatMenu
 
+        let notify = add(to: menu, "Beri tahu saat batas tercapai", #selector(toggleNotifications))
+        notify.state = notificationsEnabled ? .on : .off
         menu.addItem(.separator())
         add(to: menu, "Buka log", #selector(openLog))
         add(to: menu, "Buka folder config", #selector(openConfig))
@@ -166,6 +185,39 @@ public final class ChargeCapService: NSObject {
     @objc private func chooseHeat(_ sender: NSMenuItem) {
         guard let value = sender.representedObject as? Int else { return }
         update { $0.heatLimitC = value }
+    }
+
+    @objc private func toggleNotifications() {
+        if notificationsEnabled {
+            UserDefaults.standard.set(false, forKey: Self.notifyKey)
+            return
+        }
+        guard Bundle.main.bundleIdentifier != nil else { return }  // notifications need an app bundle
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, _ in
+            DispatchQueue.main.async {
+                UserDefaults.standard.set(granted, forKey: Self.notifyKey)
+                if !granted {
+                    let alert = NSAlert()
+                    alert.messageText = "Pemberitahuan belum diizinkan"
+                    alert.informativeText = "Izinkan di System Settings → Notifications, lalu nyalakan lagi pilihan ini."
+                    alert.runModal()
+                }
+            }
+        }
+    }
+
+    private func announce(_ event: BatteryEvent) {
+        guard notificationsEnabled, Bundle.main.bundleIdentifier != nil else { return }
+        let content = UNMutableNotificationContent()
+        switch event {
+        case .limitReached(let percent, let limit):
+            content.title = "ChargeCap: batas \(limit)% tercapai"
+            content.body = "Pengisian berhenti di \(percent)%. Charger boleh tetap terpasang."
+        case .heatHold(let temperature, let limit):
+            content.title = "ChargeCap: proteksi suhu aktif"
+            content.body = String(format: "Baterai %.1f°C (batas %d°C). Pengisian ditahan sampai lebih dingin.", temperature, limit)
+        }
+        UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
     }
 
     @objc private func openLog() {

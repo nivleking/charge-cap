@@ -14,9 +14,16 @@ public struct BatteryInfo: Equatable, Sendable {
     public var cycleCount: Int?
     /// Battery temperature in °C (the gauge reports hundredths of a degree).
     public var temperatureC: Double?
+    /// Maximum capacity relative to a new battery, in percent (System Settings' Battery Health).
+    public var healthPercent: Int?
 }
 
 extension BatteryInfo {
+    public var snapshot: BatterySnapshot {
+        BatterySnapshot(percent: percent, isCharging: isCharging, externalConnected: externalConnected,
+                        notChargingReason: notChargingReason, temperatureC: temperatureC)
+    }
+
     public var conditions: Conditions {
         Conditions(percent: percent, temperatureC: temperatureC, externalConnected: externalConnected)
     }
@@ -40,6 +47,8 @@ public enum Battery {
             dailyMaxSoc: (data?["DailyMaxSoc"] as? NSNumber)?.intValue,
             dailyMinSoc: (data?["DailyMinSoc"] as? NSNumber)?.intValue,
             cycleCount: (dict["CycleCount"] as? NSNumber)?.intValue,
-            temperatureC: (dict["Temperature"] as? NSNumber).map { $0.doubleValue / 100 })
+            temperatureC: (dict["Temperature"] as? NSNumber).map { $0.doubleValue / 100 },
+            healthPercent: BatteryHealth.percent(nominal: (dict["NominalChargeCapacity"] as? NSNumber)?.intValue ?? 0,
+                                                 design: (dict["DesignCapacity"] as? NSNumber)?.intValue ?? 0))
     }
 }

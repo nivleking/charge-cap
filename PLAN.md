@@ -298,6 +298,9 @@ diminta `config.json`: saat start, setelah bangun, saat sumber daya berubah, dan
   KTools dibangun ulang dengan modul ChargeCap. Menu dilihat langsung belum diuji.
 
 ### Fase 5 — Opsional
+- **Info baterai di menu (4 Nov 2026)**: baris "Suhu · Kesehatan · siklus" (kesehatan = `NominalChargeCapacity / DesignCapacity`,
+  sama dengan Maximum Capacity di System Settings, 86% di Mac Kelvin), dan **pemberitahuan** (opsional, mati secara bawaan) saat pengisian
+  berhenti di batas dan saat proteksi suhu mulai (`BatteryEvents`, 9 tes). `chargecap status` ikut menampilkan kesehatan dan siklus.
 - **Sailing**: sudah tercakup jarak mulai-ulang (`chargecap gap N`, 1–15).
 - **Proteksi suhu (selesai, dites)**: `chargecap heat 35`; `Policy` membekukan batas berhenti di persen saat mulai
   panas dan melepasnya 3 °C di bawah ambang; tidak pernah menaikkan batas, menang atas top up.

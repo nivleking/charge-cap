@@ -78,6 +78,9 @@ case "status":
         let charging = b.isCharging ? "mengisi" : (b.externalConnected ? "tidak mengisi (charger terpasang)" : "memakai baterai")
         print("Baterai: \(b.percent)%, \(charging)" + (b.notChargingReason != 0 ? " [firmware menahan pengisian]" : "")
               + (b.temperatureC.map { String(format: ", %.1f°C", $0) } ?? ""))
+        if b.healthPercent != nil || b.cycleCount != nil {
+            print("Kesehatan baterai: \(b.healthPercent.map { "\($0)%" } ?? "?"), \(b.cycleCount.map { "\($0) siklus" } ?? "? siklus")")
+        }
     } else {
         print("Baterai: tidak terbaca")
     }
